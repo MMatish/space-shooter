@@ -1,3 +1,4 @@
+// Bullet.ts
 import Phaser from "phaser";
 
 export default class Bullet extends Phaser.Physics.Arcade.Sprite {
@@ -5,28 +6,25 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   private scaleFactor: number = 1 / 1.5;
 
   constructor(scene: Phaser.Scene, x: number = 0, y: number = 0) {
-    super(scene, x, y, "bullet", 0); // start with frame 0
+    super(scene, x, y, "bullet", 0);
 
-    this.speed = 500;
+    this.speed = 300;
 
-    // Add sprite to scene and physics
+    // Add to scene & physics
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    // Scale & origin
+    // Scale & center origin
     this.setScale(this.scaleFactor);
     this.setOrigin(0.5, 0.5);
 
     // Update physics body to match scaled sprite
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setSize(this.width * this.scaleFactor, this.height * this.scaleFactor);
-    body.setOffset(0, 0);
+    body.setOffset((this.width - body.width) / 1, (this.height - body.height) / 1);
 
     this.setActive(false);
     this.setVisible(false);
-
-    // ---- Start the loop animation ----
-    this.play("bulletLoop"); // <- here, after adding to the scene
   }
 
   fire(x: number, y: number, rotation: number) {
@@ -39,6 +37,7 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
 
     this.setActive(true);
     this.setVisible(true);
+    if (!this.anims.isPlaying) this.play("bulletLoop", true);
   }
 
   update() {

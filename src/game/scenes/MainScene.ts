@@ -91,7 +91,25 @@ export default class MainScene extends Phaser.Scene {
     if (!this.player) return;
 
     // --- PLAYER MOVEMENT ---
-    this.player.update(this.cursors);
+    if (!this.player) return;
+
+    // Pass keyboard cursors and pointer (mouse)
+    this.player.update(this.cursors, this.input.activePointer);
+
+    // Shooting
+    if (this.input.activePointer.isDown && time > this.lastFired) {
+      const bullet = this.bullets.get() as Bullet;
+      if (bullet) {
+        const angle = Phaser.Math.Angle.Between(
+          this.player.x,
+          this.player.y,
+          this.input.activePointer.worldX,
+          this.input.activePointer.worldY
+        );
+        bullet.fire(this.player.x, this.player.y, angle);
+        this.lastFired = time + 200;
+      }
+    }
 
     // --- CLAMP PLAYER TO MAP BOUNDS ---
     this.player.x = Phaser.Math.Clamp(this.player.x, 0, this.mapWidth);
@@ -109,11 +127,5 @@ export default class MainScene extends Phaser.Scene {
       }
     }
 
-    // --- TEST EXPLOSIONS ---
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.shift)) {
-      const randX = Phaser.Math.Between(50, this.mapWidth - 50);
-      const randY = Phaser.Math.Between(50, this.mapHeight - 50);
-      new Explosion(this, randX, randY);
-    }
   }
 }
