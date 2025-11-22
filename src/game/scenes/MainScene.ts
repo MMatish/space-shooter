@@ -20,7 +20,6 @@ export default class MainScene extends Phaser.Scene {
   private mapWidth!: number;
   private mapHeight!: number;
   private lastFired = 0;
-  private entityScale: number = 1 / 1.5; // 0.66
 
   constructor() {
     super("MainScene");
@@ -44,6 +43,11 @@ export default class MainScene extends Phaser.Scene {
       frameWidth: 48,
       frameHeight: 48,
     });
+    // Load video normally
+    this.load.video("bgVideo", [
+      "assets/space_background.mp4",
+      "assets/space_background.webm",
+    ]);
   }
 
   /** ----------------------------
@@ -53,19 +57,36 @@ export default class MainScene extends Phaser.Scene {
   create() {
     // --- MAP ---
     const { map, floors, walls } = createMap(this);
-    this.mapWidth = map.widthInPixels * 2;
-    this.mapHeight = map.heightInPixels * 2;
+    this.mapWidth = map.widthInPixels;
+    this.mapHeight = map.heightInPixels;
 
-    // --- WORLD ---
+    // --- CALCULATE OFFSET FOR BACKGROUND ---
+    const bg = this.add
+      .video(700, 700, "bgVideo")
+      .setDepth(-1)
+      .setScrollFactor(0);
+    bg.play(true).setMute(true);
+
+    // --- PHYSICS WORLD ---
     this.physics.world.setBounds(0, 0, this.mapWidth, this.mapHeight);
 
+    // Enable collisions on wall tiles
+    walls.setCollisionByProperty({ collides: true });
+
     // --- PLAYER ---
-    this.player = new Player(this, 400, 300, "player");
+    this.player = new Player(
+      this,
+      this.mapWidth / 2,
+      this.mapHeight / 2,
+      "player"
+    );
     this.physics.add.collider(this.player, walls);
 
     // --- CAMERA ---
-    setupCamera(this, this.player, map);
-    this.cameras.main.setZoom(2);
+    const camera = this.cameras.main;
+    camera.setBounds(0, 0, this.mapWidth, this.mapHeight);
+    camera.startFollow(this.player, true, 0.08, 0.08);
+    camera.setZoom(2); // zoom camera, but bg stays fixed
 
     // --- ANIMATIONS ---
     registerAnimations(this);
@@ -126,6 +147,5 @@ export default class MainScene extends Phaser.Scene {
         this.lastFired = time + 300; // cooldown in ms
       }
     }
-
   }
 }

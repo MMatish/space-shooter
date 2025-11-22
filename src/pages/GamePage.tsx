@@ -12,7 +12,7 @@ const GamePage = () => {
       scene: [MainScene],
       physics: {
         default: "arcade",
-        arcade: { debug: false },
+        arcade: { debug: true },
       },
       scale: {
         mode: Phaser.Scale.RESIZE, // automatically resize with window

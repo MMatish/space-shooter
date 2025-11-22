@@ -20,8 +20,8 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
 
     // Update physics body to match scaled sprite
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setSize(this.width * this.scaleFactor, this.height * this.scaleFactor);
-    body.setOffset((this.width - body.width) / 1, (this.height - body.height) / 1);
+    this.body?.setSize(10, 10)
+
 
     this.setActive(false);
     this.setVisible(false);
