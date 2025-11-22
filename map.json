@@ -44,6 +44,11 @@
                  "name":"Collision",
                  "type":"bool",
                  "value":false
+                }, 
+                {
+                 "name":"walkable",
+                 "type":"bool",
+                 "value":true
                 }],
          "type":"tilelayer",
          "visible":true,
@@ -93,6 +98,11 @@
                  "name":"Collision",
                  "type":"bool",
                  "value":true
+                }, 
+                {
+                 "name":"walkable",
+                 "type":"bool",
+                 "value":false
                 }],
          "type":"tilelayer",
          "visible":true,

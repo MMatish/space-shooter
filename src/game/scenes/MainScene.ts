@@ -10,6 +10,8 @@ import { setupCamera } from "../systems/cameraSetup";
 import { registerAnimations } from "../systems/animations";
 import { createBulletGroup } from "../systems/bulletGroup";
 import { setupCollisions } from "../systems/collisions";
+import Pathfinder from "../systems/pathfinder";
+import { createGridFromTilemap } from "../systems/gridUtils";
 
 export default class MainScene extends Phaser.Scene {
   private player!: Player;
@@ -48,6 +50,10 @@ export default class MainScene extends Phaser.Scene {
     const { map, floors, walls } = createMap(this);
     this.mapWidth = map.widthInPixels;
     this.mapHeight = map.heightInPixels;
+
+    // --- PATHFINDER for the ai ---
+    const grid = createGridFromTilemap(floors, map);
+    const pathfinder = new Pathfinder(grid);
 
     // --- BACKGROUND ---
     const bg = this.add
@@ -88,7 +94,8 @@ export default class MainScene extends Phaser.Scene {
     } else {
       spawnLayer.objects.forEach((obj) => {
         if (obj.name.startsWith("enemy_spawn")) {
-          const enemy = new Enemy(this, obj.x!, obj.y!);
+          // Pass pathfinder and optional tileSize (32)
+          const enemy = new Enemy(this, obj.x!, obj.y!, pathfinder, 32);
           this.enemies.push(enemy);
 
           // Make enemies collide with walls
@@ -129,6 +136,8 @@ export default class MainScene extends Phaser.Scene {
     }
 
     // --- ENEMY UPDATES ---
-    this.enemies.forEach((enemy) => enemy.update());
+    this.enemies.forEach((enemy) => {
+      enemy.update(time, this.player.x, this.player.y);
+    });
   }
 }

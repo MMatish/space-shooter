@@ -1,4 +1,12 @@
 { "compressionlevel":-1,
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"json",
+         "target":"..\/..\/map.json"
+        }
+    },
  "height":32,
  "infinite":false,
  "layers":[
@@ -44,6 +52,11 @@
                  "name":"Collision",
                  "type":"bool",
                  "value":false
+                }, 
+                {
+                 "name":"walkable",
+                 "type":"bool",
+                 "value":true
                 }],
          "type":"tilelayer",
          "visible":true,
@@ -93,6 +106,11 @@
                  "name":"Collision",
                  "type":"bool",
                  "value":true
+                }, 
+                {
+                 "name":"walkable",
+                 "type":"bool",
+                 "value":false
                 }],
          "type":"tilelayer",
          "visible":true,
@@ -195,6 +213,25 @@
          "spacing":0,
          "tilecount":100,
          "tileheight":32,
+         "tiles":[
+                {
+                 "id":11,
+                 "properties":[
+                        {
+                         "name":"walkable",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":31,
+                 "properties":[
+                        {
+                         "name":"walkable",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }],
          "tilewidth":32
         }],
  "tilewidth":32,
