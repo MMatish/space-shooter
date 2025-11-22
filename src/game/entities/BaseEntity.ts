@@ -20,7 +20,6 @@ export default class BaseEntity extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (body) {
       body.setSize(this.width * scale, this.height * scale);
-      body.setOffset(0, 0);
     }
   }
 }

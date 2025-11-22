@@ -13,7 +13,7 @@ export function setupCollisions(
   // --- Bullets collide with walls ---
   scene.physics.add.collider(bullets, walls, (b: Phaser.GameObjects.GameObject) => {
     const bullet = b as Bullet;
-    bullet.setActive(false).setVisible(false);
+    destroyBullet(bullet);
   });
 
   // --- Bullets hit enemies ---
@@ -24,7 +24,7 @@ export function setupCollisions(
       const bullet = b as Bullet;
       const enemy = e as Enemy;
 
-      bullet.setActive(false).setVisible(false);
+      destroyBullet(bullet);
 
       if (!enemy.active) return;
 
@@ -32,4 +32,13 @@ export function setupCollisions(
       enemy.destroy();
     }
   );
+}
+
+// Helper function to destroy bullet safely
+function destroyBullet(bullet: Bullet) {
+  if (!bullet || !bullet.body) return;
+
+  const body = bullet.body as Phaser.Physics.Arcade.Body;
+  body.stop();     // stop any movement
+  bullet.destroy(); // remove from scene entirely
 }
