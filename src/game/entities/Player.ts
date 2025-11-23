@@ -1,35 +1,31 @@
+// entities/Player.ts
 import Phaser from "phaser";
-import BaseEntity from "./BaseEntity";
+import ActorEntity from "./ActorEntity";
 
-export default class Player extends BaseEntity {
-  private thrust = 200; // input force per second
-  private maxSpeed = 300; // clamp
-  private friction = 300; // drag when moving along input
+export default class Player extends ActorEntity {
+  private thrust = 200;
+  private maxSpeed = 300;
+  private friction = 300;
 
-  constructor(
-    scene: Phaser.Scene,
-    x: number,
-    y: number,
-    texture: string,
-    scale?: number
-  ) {
-    super(scene, x, y, texture, scale);
+  constructor(scene: Phaser.Scene, x: number, y: number) {
+    super(scene, x, y, "player");
 
-    this.setDamping(false); // we'll handle "friction" manually
+    this.setDamping(false);
     this.setDrag(0);
     this.setMaxVelocity(this.maxSpeed);
-    this.setOrigin(0.5, 0.5);
   }
 
   update(
     cursors: Phaser.Types.Input.Keyboard.CursorKeys,
     pointer: Phaser.Input.Pointer
   ) {
-    if (!this.active) return; // <-- early exit if dead
-    const body = this.body as Phaser.Physics.Arcade.Body;
-    if (!body) return; // <-- extra guard
+    if (this.isDead) return;       // <-- cannot move or shoot when dead
+    if (!this.active) return;
 
-    // Rotate to face mouse
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    if (!body) return;
+
+    // Rotate towards mouse
     const angle = Phaser.Math.Angle.Between(
       this.x,
       this.y,
@@ -38,9 +34,10 @@ export default class Player extends BaseEntity {
     );
     this.setRotation(angle);
 
-    // Thrust / acceleration vector
+    // Movement
     let ax = 0;
     let ay = 0;
+
     if (cursors.up?.isDown) {
       ax = Math.cos(this.rotation) * this.thrust;
       ay = Math.sin(this.rotation) * this.thrust;
@@ -49,14 +46,15 @@ export default class Player extends BaseEntity {
       ay = -Math.sin(this.rotation) * (this.thrust * 0.5);
     }
 
-    // Apply or reset acceleration
+    // Apply acceleration
     if (ax !== 0 || ay !== 0) {
       body.setAcceleration(ax, ay);
     } else {
+      // no input → stop accelerating
       body.setAcceleration(0, 0);
     }
 
-    // Clamp max speed
+    // Speed clamp
     if (body.velocity.length() > this.maxSpeed) {
       body.velocity.scale(this.maxSpeed / body.velocity.length());
     }
