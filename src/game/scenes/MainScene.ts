@@ -12,12 +12,15 @@ import { createBulletGroup } from "../systems/bulletGroup";
 import { setupCollisions } from "../systems/collisions";
 import Pathfinder from "../systems/pathfinder";
 import { createGridFromTilemap } from "../systems/gridUtils";
+import { shoot } from "../systems/shooting";
 
 export default class MainScene extends Phaser.Scene {
   private player!: Player;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private bullets!: Phaser.Physics.Arcade.Group;
+  private playerBullets!: Phaser.Physics.Arcade.Group;
+  private enemyBullets!: Phaser.Physics.Arcade.Group;
   private enemies: Enemy[] = [];
+  private enemiesGroup!: Phaser.Physics.Arcade.Group;
   private mapWidth!: number;
   private mapHeight!: number;
   private lastFired = 0;
@@ -51,7 +54,7 @@ export default class MainScene extends Phaser.Scene {
     this.mapWidth = map.widthInPixels;
     this.mapHeight = map.heightInPixels;
 
-    // --- PATHFINDER for the ai ---
+    // --- PATHFINDER ---
     const grid = createGridFromTilemap(floors, map);
     const pathfinder = new Pathfinder(grid);
 
@@ -84,31 +87,36 @@ export default class MainScene extends Phaser.Scene {
     // --- ANIMATIONS ---
     registerAnimations(this);
 
-    // --- BULLETS ---
-    this.bullets = createBulletGroup(this);
+    // --- BULLET GROUPS ---
+    this.playerBullets = createBulletGroup(this);
+    this.enemyBullets = createBulletGroup(this);
 
-    // --- ENEMIES ---
-    const spawnLayer = map.getObjectLayer("spawns");
-    if (!spawnLayer) {
-      console.warn("Spawn layer not found!");
-    } else {
-      spawnLayer.objects.forEach((obj) => {
-        if (obj.name.startsWith("enemy_spawn")) {
-          // Pass pathfinder and optional tileSize (32)
-          const enemy = new Enemy(this, obj.x!, obj.y!, pathfinder, 32);
-          this.enemies.push(enemy);
-
-          // Make enemies collide with walls
-          this.physics.add.collider(enemy, walls);
-        }
-      });
+// --- ENEMIES ---
+const spawnLayer = map.getObjectLayer("spawns");
+if (!spawnLayer) {
+  console.warn("Spawn layer not found!");
+} else {
+  spawnLayer.objects.forEach((obj) => {
+    if (obj.name.startsWith("enemy_spawn")) {
+      for (let i = 0; i < 2; i++) { // spawn 2 enemies per point
+        // Slight offset to avoid exact overlap
+        const offsetX = (Math.random() - 0.5) * 16; 
+        const offsetY = (Math.random() - 0.5) * 16;
+        const enemy = new Enemy(this, obj.x! + offsetX, obj.y! + offsetY, pathfinder, 32);
+        this.enemies.push(enemy);
+        this.physics.add.collider(enemy, walls);
+      }
     }
+  });
+}
 
-    // Convert enemies array to a Phaser group for collision handling
-    const enemyGroup = this.physics.add.group(this.enemies);
+
+    // Convert enemies array into Phaser group
+    this.enemiesGroup = this.physics.add.group(this.enemies);
 
     // --- COLLISIONS ---
-    setupCollisions(this, this.bullets, enemyGroup, walls);
+    setupCollisions(this, this.playerBullets, this.enemiesGroup, walls); // Player bullets hit enemies
+    setupCollisions(this, this.enemyBullets, this.player, walls, false); // Enemy bullets hit player
 
     // --- INPUT ---
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -120,24 +128,26 @@ export default class MainScene extends Phaser.Scene {
     // --- PLAYER UPDATE ---
     this.player.update(this.cursors, this.input.activePointer);
 
-    // --- SHOOT BULLETS ---
-    if (this.input.activePointer.isDown && time > this.lastFired) {
-      const bullet = this.bullets.get() as Bullet;
-      if (bullet) {
-        const angle = Phaser.Math.Angle.Between(
-          this.player.x,
-          this.player.y,
-          this.input.activePointer.worldX,
-          this.input.activePointer.worldY
-        );
-        bullet.fire(this.player.x, this.player.y, angle);
-        this.lastFired = time + 200; // 200ms cooldown
-      }
+    // --- PLAYER SHOOTING ---
+    if (
+      this.player.active &&
+      this.input.activePointer.isDown &&
+      time > this.lastFired
+    ) {
+      shoot(
+        this.playerBullets,
+        this.player.x,
+        this.player.y,
+        this.input.activePointer.worldX,
+        this.input.activePointer.worldY
+      );
+      this.lastFired = time + 200; // 200ms cooldown
     }
 
-    // --- ENEMY UPDATES ---
+    // --- ENEMY UPDATES & SHOOTING ---
     this.enemies.forEach((enemy) => {
-      enemy.update(time, this.player.x, this.player.y);
+      // Pass enemyBullets group so each enemy can shoot at the player
+      enemy.update(time, this.player.x, this.player.y, this.enemyBullets);
     });
   }
 }

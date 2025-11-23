@@ -1,18 +1,22 @@
-// entities/Enemy.ts
 import Phaser from "phaser";
 import BaseEntity from "./BaseEntity";
 import Pathfinder from "../systems/pathfinder";
+import { shoot } from "../systems/shooting";
 
 export default class Enemy extends BaseEntity {
-  private speed = 150;           // max speed
-  private acceleration = 300;    // like player thrust
+  private speed = 150;
+  private acceleration = 300;
   private path: { x: number; y: number }[] = [];
   private pathIndex = 0;
   private pathfinder: Pathfinder;
   private tileSize: number;
   private lastPathTime = 0;
-  private pathUpdateInterval = 100; // ms
-  private lookahead = 2;         // number of tiles to skip ahead
+  private pathUpdateInterval = 100;
+  private lookahead = 2;
+
+  // --- Shooting ---
+  public lastShotTime = 0;
+  public shotCooldown = 600; // 1 second between shots
 
   constructor(
     scene: Phaser.Scene,
@@ -39,18 +43,24 @@ export default class Enemy extends BaseEntity {
     const endY = Math.floor(playerY / this.tileSize);
 
     const path = await this.pathfinder.findPath(startX, startY, endX, endY);
-
     if (path && path.length > 0) {
       this.path = path;
       this.pathIndex = 0;
     }
   }
 
-  update(time: number, playerX: number, playerY: number) {
+  /**
+   * Update enemy movement and optionally shoot at the player
+   * @param time Phaser time
+   * @param playerX Player world X
+   * @param playerY Player world Y
+   * @param enemyBullets Optional bullet group for shooting
+   */
+  update(time: number, playerX: number, playerY: number, enemyBullets?: Phaser.Physics.Arcade.Group) {
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (!body) return;
 
-    // --- Recompute path periodically ---
+    // --- Pathfinding ---
     if (time - this.lastPathTime > this.pathUpdateInterval) {
       this.lastPathTime = time;
       this.followPlayer(playerX, playerY);
@@ -58,39 +68,34 @@ export default class Enemy extends BaseEntity {
 
     if (!this.path || this.pathIndex >= this.path.length) {
       body.setAcceleration(0, 0);
-      return;
-    }
+    } else {
+      const targetIndex = Math.min(this.pathIndex + this.lookahead, this.path.length - 1);
+      const targetTile = this.path[targetIndex];
+      const targetX = targetTile.x * this.tileSize + this.tileSize / 2;
+      const targetY = targetTile.y * this.tileSize + this.tileSize / 2;
 
-    // --- Target farther along path (lookahead) ---
-    const targetIndex = Math.min(this.pathIndex + this.lookahead, this.path.length - 1);
-    const targetTile = this.path[targetIndex];
-    const targetX = targetTile.x * this.tileSize + this.tileSize / 2;
-    const targetY = targetTile.y * this.tileSize + this.tileSize / 2;
+      const dx = targetX - this.x;
+      const dy = targetY - this.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
 
-    const dx = targetX - this.x;
-    const dy = targetY - this.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < 4) this.pathIndex++;
 
-    if (distance < 4) {
-      this.pathIndex++;
-      if (this.pathIndex >= this.path.length) {
-        body.setAcceleration(0, 0);
-        return;
+      const angle = Math.atan2(dy, dx);
+      const ax = Math.cos(angle) * this.acceleration;
+      const ay = Math.sin(angle) * this.acceleration;
+      body.setAcceleration(ax, ay);
+
+      if (body.velocity.length() > this.speed) {
+        body.velocity.scale(this.speed / body.velocity.length());
       }
+
+      this.setRotation(angle);
     }
 
-    // --- Accelerate toward target ---
-    const angle = Math.atan2(dy, dx);
-    const ax = Math.cos(angle) * this.acceleration;
-    const ay = Math.sin(angle) * this.acceleration;
-    body.setAcceleration(ax, ay);
-
-    // --- Clamp max speed ---
-    if (body.velocity.length() > this.speed) {
-      body.velocity.scale(this.speed / body.velocity.length());
+    // --- Shooting at player ---
+    if (enemyBullets && time > this.lastShotTime) {
+      shoot(enemyBullets, this.x, this.y, playerX, playerY);
+      this.lastShotTime = time + this.shotCooldown;
     }
-
-    // --- Rotate to face movement ---
-    this.setRotation(angle);
   }
 }

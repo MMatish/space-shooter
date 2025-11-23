@@ -1,27 +1,19 @@
-// Bullet.ts
+// entities/Bullet.ts
 import Phaser from "phaser";
 
 export default class Bullet extends Phaser.Physics.Arcade.Sprite {
-  speed: number;
+  speed: number = 300; // default speed
   private scaleFactor: number = 1 / 1.5;
 
-  constructor(scene: Phaser.Scene, x: number = 0, y: number = 0) {
-    super(scene, x, y, "bullet", 0);
+  constructor(scene: Phaser.Scene, x = 0, y = 0) {
+    super(scene, x, y, "bullet");
 
-    this.speed = 300;
-
-    // Add to scene & physics
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    // Scale & center origin
     this.setScale(this.scaleFactor);
     this.setOrigin(0.5, 0.5);
-
-    // Update physics body to match scaled sprite
-    const body = this.body as Phaser.Physics.Arcade.Body;
-    this.body?.setSize(10, 10)
-
+    (this.body as Phaser.Physics.Arcade.Body)?.setSize(10, 10);
 
     this.setActive(false);
     this.setVisible(false);
@@ -37,6 +29,7 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
 
     this.setActive(true);
     this.setVisible(true);
+
     if (!this.anims.isPlaying) this.play("bulletLoop", true);
   }
 
