@@ -3,6 +3,7 @@ import Phaser from "phaser";
 
 export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   speed: number = 300; // default speed
+  damage: number = 50;
   private scaleFactor: number = 1 / 1.5;
 
   constructor(scene: Phaser.Scene, x = 0, y = 0) {
@@ -17,6 +18,8 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
 
     this.setActive(false);
     this.setVisible(false);
+
+    this.scene.sound.play("shot", {volume: 0.02})
   }
 
   fire(x: number, y: number, rotation: number) {
@@ -38,6 +41,7 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
     if (!body) return;
 
     if (!this.scene.physics.world.bounds.contains(this.x, this.y)) {
+      this.scene.sound.play("explosion", {volume: 0.5})
       this.setActive(false);
       this.setVisible(false);
       body.stop();
