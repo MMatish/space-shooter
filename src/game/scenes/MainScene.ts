@@ -116,6 +116,12 @@ export default class MainScene extends Phaser.Scene {
   }
 
   update(time: number) {
+    // --- RESTART WHEN PRESSING SPACE ---
+    if (Phaser.Input.Keyboard.JustDown(this.cursors.space!)) {
+      this.scene.restart();
+      return; // stop further update logic this frame
+    }
+
     if (!this.player) return;
 
     // --- PLAYER UPDATE ---
