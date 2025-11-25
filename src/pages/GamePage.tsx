@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import Phaser from "phaser";
 import MainScene from "../game/scenes/MainScene";
+import GameUi from "./GameUi";
 
 const GamePage = () => {
   useEffect(() => {
@@ -26,7 +27,10 @@ const GamePage = () => {
   }, []);
 
   return (
-    <div id="game-container" style={{ width: "100vw", height: "100vh" }} />
+    <>
+      <div id="game-container" style={{ width: "100vw", height: "100vh" }} />
+      <GameUi></GameUi>
+    </>
   );
 };
 

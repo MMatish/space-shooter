@@ -1,8 +1,9 @@
 import Phaser from "phaser";
 import ActorEntity from "./ActorEntity";
+import { useGameStore } from "../../store/gameStore";
 
 export default class Player extends ActorEntity {
-  private thrust = 200;    // how much acceleration is applied when moving
+  private thrust = 300;    // how much acceleration is applied when moving
   private maxSpeed = 300;  // top speed cap
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -16,8 +17,22 @@ export default class Player extends ActorEntity {
     });
 
     this.setDamping(false);   // disable built-in damping
-    this.setDrag(0);          // no drag
+    this.setDrag(900);          // no drag
     this.setMaxVelocity(this.maxSpeed); // cap velocity
+  }
+
+  /** Apply incoming damage */
+  takeDamage(amount: number) {
+    if (this.isDead) return;
+
+    this.health -= amount;
+
+    let newHealth = this.health < 0 ? 0 : this.health;
+    useGameStore.getState().setPlayerHP(newHealth);
+
+    if (this.health <= 0) {
+      this.kill();
+    }
   }
 
   /**

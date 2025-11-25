@@ -9,6 +9,7 @@ import { createGridFromTilemap } from "../systems/gridUtils";
 import { shoot } from "../systems/shooting";
 import { setupCollisions } from "../systems/collisionHandler";
 import { MapManager } from "../systems/mapManager";
+import { useGameStore } from "../../store/gameStore";
 
 export default class MainScene extends Phaser.Scene {
   private player!: Player;
@@ -38,6 +39,7 @@ export default class MainScene extends Phaser.Scene {
     this.load.image("enemy", "assets/enemy.png");
     this.load.image("fastEnemy", "assets/fastEnemy.png");
     this.load.image("tankEnemy", "assets/tankEnemy.png");
+    this.load.image("boss", "assets/boss.png");
 
     // --- ANIMATIONS ---
     this.load.spritesheet("explosion", "assets/explosion.png", {
@@ -81,6 +83,8 @@ export default class MainScene extends Phaser.Scene {
     this.player = new Player(this, this.mapWidth / 2, this.mapHeight / 2);
     this.playerGroup = this.physics.add.group({ classType: Player });
     this.playerGroup.add(this.player);
+
+    useGameStore.getState().setPlayerHP(this.player.health);
 
     // --- CAMERA ---
     const camera = this.cameras.main;
