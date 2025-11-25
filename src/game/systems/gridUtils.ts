@@ -5,7 +5,6 @@ import Phaser from "phaser";
  * Tiles with the "walkable" property set to true are walkable (1), others are blocked (0)
  */
 export function createGridFromTilemap(tilemapLayer: Phaser.Tilemaps.TilemapLayer) {
-  const map = tilemapLayer.tilemap;
   const layerData = tilemapLayer.layer; // the actual internal layer data
   const grid: number[][] = [];
 
