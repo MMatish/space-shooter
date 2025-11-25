@@ -1,47 +1,55 @@
 import Phaser from "phaser";
 import ActorEntity from "../entities/ActorEntity";
-import Player from "../entities/Player";
 import Bullet from "../entities/Bullet";
 import Explosion from "../entities/Explosion";
 
 // --- Type Assertions ---
 interface CustomBullet extends Bullet {
   active: boolean;
-  damage?: number;
 }
 
 // -----------------------------
 // Unified Collision Handlers
 // -----------------------------
 
-const hitActor = (
-  bulletGO: Phaser.GameObjects.GameObject,
-  targetGO: Phaser.GameObjects.GameObject
+const hitActor: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback = (
+  object1, // This could be the bullet or the target, depending on group order
+  object2
 ) => {
-  const bullet = bulletGO as CustomBullet;
-  const target = targetGO as ActorEntity;
+  // Use explicit casts from the generic types
+  const bullet = object1 as CustomBullet;
+  const target = object2 as ActorEntity;
 
-  if (!bullet.active || !target.active || target.isDead || typeof target.takeDamage !== "function") return;
+  if (
+    !bullet.active ||
+    !target.active ||
+    target.isDead ||
+    typeof target.takeDamage !== "function"
+  )
+    return;
 
   new Explosion(bullet.scene, target.x, target.y, 0.5);
-  target.takeDamage(bullet.damage ?? 10);
+  target.takeDamage(bullet.damage ?? 50);
   bullet.destroy();
 };
 
-const hitWall = (bulletGO: Phaser.GameObjects.GameObject) => {
-  const bullet = bulletGO as CustomBullet;
+const hitWall: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback = (
+  object1, // This will be the bullet
+  // object2 is the wall tile, we don't need to use it
+) => {
+  const bullet = object1 as CustomBullet;
   if (!bullet.active) return;
 
   new Explosion(bullet.scene, bullet.x, bullet.y, 0.3);
   bullet.destroy();
 };
 
-const actorTouch = (
-  playerGO: Phaser.GameObjects.GameObject,
-  enemyGO: Phaser.GameObjects.GameObject
+const actorTouch: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback = (
+  object1, // Attacker
+  object2 // Target
 ) => {
-  const player = playerGO as ActorEntity;
-  const enemy = enemyGO as ActorEntity;
+  const player = object1 as ActorEntity;
+  const enemy = object2 as ActorEntity;
 
   if (!player.active || player.isDead || !enemy.active) return;
   if (typeof player.takeDamage !== "function") return;
