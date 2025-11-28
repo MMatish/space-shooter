@@ -16,12 +16,12 @@ const HomePage = () => {
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-md">
-          Try to win if you can.
+          To move, use <b>arrows up and down</b>, to restart the map - press <b>space</b>
         </p>
 
         {/* Start Button */}
         <button
-          className="px-10 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-cyan-500 hover:to-blue-500 rounded-full text-xl font-semibold text-white shadow-lg transition-all transform hover:scale-105 hover:shadow-2xl"
+          className="px-10 py-4 bg-linear-to-r from-blue-500 to-cyan-500 hover:from-cyan-500 hover:to-blue-500 rounded-full text-xl font-semibold text-white shadow-lg transition-all transform hover:scale-105 hover:shadow-2xl"
           onClick={() => navigate('/game')}
         >
           Start Game
