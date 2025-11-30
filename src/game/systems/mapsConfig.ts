@@ -78,10 +78,9 @@ export const MAPS: MapConfig[] = [
                 id: "enemy_spawn_1", enemyKey: "boss"
             },
             { id: "enemy_spawn_2", enemyKey: "normal" },
-            { id: "enemy_spawn_2", enemyKey: "normal", delay: 10000 },
-            { id: "enemy_spawn_2", enemyKey: "normal", delay: 20000 },
-            { id: "enemy_spawn_2", enemyKey: "normal", delay: 30000 },
-            { id: "enemy_spawn_2", enemyKey: "normal", delay: 40000 },
+            { id: "enemy_spawn_3", enemyKey: "normal" },
+            { id: "enemy_spawn_4", enemyKey: "normal" },
+            { id: "enemy_spawn_5", enemyKey: "normal" },
         ]
       }
     ],

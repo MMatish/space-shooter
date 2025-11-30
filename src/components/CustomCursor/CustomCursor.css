@@ -1,0 +1,51 @@
+/* Hide default cursor everywhere */
+body {
+  cursor: none;
+}
+
+/* Both elements fixed on screen, non-interactive */
+.cursor-dot, .cursor-cross {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Dot */
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Crosshair */
+.cursor-cross {
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+}
+.cursor-cross::before,
+.cursor-cross::after {
+  content: '';
+  position: absolute;
+  background-color: rgb(255, 255, 255);
+}
+
+/* Horizontal line */
+.cursor-cross::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
+/* Vertical line */
+.cursor-cross::after {
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  transform: translateX(-50%);
+}

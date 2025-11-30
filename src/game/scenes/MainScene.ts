@@ -9,6 +9,7 @@ import { createGridFromTilemap } from "../systems/gridUtils";
 import { shoot } from "../systems/shooting";
 import { setupCollisions } from "../systems/collisionHandler";
 import { MapManager } from "../systems/mapManager";
+import { useGameStore } from "../../dataStore/gameStore";
 
 export default class MainScene extends Phaser.Scene {
   private player!: Player;
@@ -20,24 +21,40 @@ export default class MainScene extends Phaser.Scene {
   private enemiesGroup!: Phaser.Physics.Arcade.Group;
   private mapManager!: MapManager;
 
+  private keys!: Record<'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
+
+
   private mapWidth!: number;
   private mapHeight!: number;
   private lastFired = 0;
 
-  constructor() {
+  // map name
+  private mapName: string;
+
+  // error msg
+  private setError: (msg: string) => void;
+
+  // for loading
+  onLoaded: (() => void) | undefined;
+
+  constructor(mapName: string, setError: (msg: string) => void, onLoaded?: () => void) {
     super("MainScene");
+    this.mapName = mapName;
+    this.setError = setError;
+    this.onLoaded = onLoaded;
   }
 
   preload() {
     // --- MAP ---
-    this.load.image("tiles", "assets/TileSet v1.0.png");
-    this.load.tilemapTiledJSON("map", "assets/map.json");
+    this.load.image("tiles", `assets/maps/${this.mapName}_tileset.png`);
+    this.load.tilemapTiledJSON("map", `assets/maps/${this.mapName}.json`);
 
     // --- ENTITIES ---
     this.load.image("player", "assets/player.png");
     this.load.image("enemy", "assets/enemy.png");
     this.load.image("fastEnemy", "assets/fastEnemy.png");
     this.load.image("tankEnemy", "assets/tankEnemy.png");
+    this.load.image("boss", "assets/boss.png");
 
     // --- ANIMATIONS ---
     this.load.spritesheet("explosion", "assets/explosion.png", {
@@ -55,64 +72,82 @@ export default class MainScene extends Phaser.Scene {
     // --- SOUNDS ---
     this.load.audio("explosion", "assets/sounds/explosion.mp3");
     this.load.audio("shot", "assets/sounds/shot.mp3");
+
+    this.load.on("complete", () => {
+      if (this.onLoaded) this.onLoaded();
+    });
   }
 
   create() {
-    // --- MAP ---
-    const { map, floors, walls } = createMap(this);
-    this.mapWidth = map.widthInPixels;
-    this.mapHeight = map.heightInPixels;
+    try {
+      // --- MAP ---
+      const { map, floors, walls } = createMap(this, this.mapName);
+      this.mapWidth = map.widthInPixels;
+      this.mapHeight = map.heightInPixels;
 
-    // --- WORLD BOUNDS ---
-    this.physics.world.setBounds(0, 0, this.mapWidth, this.mapHeight);
+      // --- WORLD BOUNDS ---
+      this.physics.world.setBounds(0, 0, this.mapWidth, this.mapHeight);
 
-    // --- BACKGROUND ---
-    addBackground(this, this.mapWidth, this.mapHeight);
+      // --- BACKGROUND ---
+      addBackground(this, this.mapWidth, this.mapHeight);
 
-    // --- PATHFINDER ---
-    const grid = createGridFromTilemap(floors);
-    const pathfinder = new Pathfinder(grid);
+      // --- PATHFINDER ---
+      const grid = createGridFromTilemap(floors);
+      const pathfinder = new Pathfinder(grid);
 
-    // --- MAP MANAGER ---
-    this.mapManager = new MapManager(this, pathfinder);
-    this.mapManager.loadMap(map, "map"); // just pass the map object and its key/name
+      // --- MAP MANAGER ---
+      this.mapManager = new MapManager(this, pathfinder);
+      this.mapManager.loadMap(map, "map"); // just pass the map object and its key/name
 
-    // --- PLAYER ---
-    this.player = new Player(this, this.mapWidth / 2, this.mapHeight / 2);
-    this.playerGroup = this.physics.add.group({ classType: Player });
-    this.playerGroup.add(this.player);
+      // --- PLAYER ---
+      this.player = new Player(this, this.mapWidth / 2, this.mapHeight / 2);
+      this.playerGroup = this.physics.add.group({ classType: Player });
+      this.playerGroup.add(this.player);
 
-    // --- CAMERA ---
-    const camera = this.cameras.main;
-    camera.setBounds(0, 0, this.mapWidth, this.mapHeight);
-    camera.startFollow(this.player, true, 0.08, 0.08);
-    camera.setZoom(2);
+      useGameStore.getState().setPlayerHP(this.player.health);
 
-    // --- ANIMATIONS ---
-    registerAnimations(this);
+      // --- CAMERA ---
+      const camera = this.cameras.main;
+      camera.setBounds(0, 0, this.mapWidth, this.mapHeight);
+      camera.startFollow(this.player, true, 0.08, 0.08);
+      camera.setZoom(2);
 
-    // --- BULLET GROUPS ---
-    this.playerBullets = createBulletGroup(this);
-    this.enemyBullets = createBulletGroup(this);
+      // --- ANIMATIONS ---
+      registerAnimations(this);
 
-    // --- ENEMIES GROUP ---
-    this.enemiesGroup = this.physics.add.group();
+      // --- BULLET GROUPS ---
+      this.playerBullets = createBulletGroup(this);
+      this.enemyBullets = createBulletGroup(this);
 
-    // --- FIRST WAVE ---
-    this.enemies = this.mapManager.spawnWave(this.enemiesGroup, walls);
+      // --- ENEMIES GROUP ---
+      this.enemiesGroup = this.physics.add.group();
 
-    // --- COLLISIONS ---
-    setupCollisions(
-      this,
-      this.playerGroup,
-      this.playerBullets,
-      this.enemyBullets,
-      this.enemiesGroup,
-      walls
-    );
+      // --- FIRST WAVE ---
+      this.enemies = this.mapManager.spawnWave(this.enemiesGroup, walls);
 
-    // --- INPUT ---
-    this.cursors = this.input.keyboard!.createCursorKeys();
+      // --- COLLISIONS ---
+      setupCollisions(
+        this,
+        this.playerGroup,
+        this.playerBullets,
+        this.enemyBullets,
+        this.enemiesGroup,
+        walls
+      );
+
+      // --- INPUT ---
+      this.cursors = this.input.keyboard!.createCursorKeys();
+    } catch (error: any) {
+      console.error(error);
+      this.setError(error.message || "Unknown error occured");
+    }
+    // --- WASD keys ---
+    this.keys = this.input.keyboard!.addKeys({
+      w: Phaser.Input.Keyboard.KeyCodes.W,
+      a: Phaser.Input.Keyboard.KeyCodes.A,
+      s: Phaser.Input.Keyboard.KeyCodes.S,
+      d: Phaser.Input.Keyboard.KeyCodes.D,
+    }) as Record<"w" | "a" | "s" | "d", Phaser.Input.Keyboard.Key>;
   }
 
   update(time: number) {
@@ -125,7 +160,7 @@ export default class MainScene extends Phaser.Scene {
     if (!this.player) return;
 
     // --- PLAYER UPDATE ---
-    this.player.update(this.cursors, this.input.activePointer);
+    this.player.update(this.cursors, this.keys, this.input.activePointer);
 
     // --- PLAYER SHOOTING ---
     if (
