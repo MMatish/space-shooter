@@ -3,8 +3,8 @@ import { useGameStore } from "../dataStore/gameStore";
 
 const maps = [
   { id: "map", label: "Nebula Outpost" },
-  { id: "map2", label: "Asteroid Belt" }, // placeholder for now
-  { id: "map3", label: "Omega Station" }  // placeholder for now
+  { id: "map2", label: "Asteroid Belt" }, // placeholder
+  { id: "map3", label: "Omega Station" }  // placeholder
 ];
 
 export default function MapSelectPage() {
@@ -17,20 +17,24 @@ export default function MapSelectPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-black text-white">
-      <h1 className="text-4xl font-bold mb-10">Select Your Map</h1>
+    <div className="relative h-screen flex flex-col items-center justify-center bg-black text-white overflow-hidden px-4">
+      <div className="z-10 flex flex-col items-center text-center">
+        <h1 className="text-5xl md:text-6xl font-extrabold mb-10 text-white drop-shadow-[0_0_12px_rgba(0,255,255,0.7)] animate-pulse">
+          Select The Map
+        </h1>
 
-      <div className="flex flex-col gap-6">
-        {maps.map((m) => (
-          <button
-            key={m.id}
-            onClick={() => chooseMap(m.id)}
-            className="px-10 py-4 bg-blue-600 rounded-xl text-xl font-semibold
-                       hover:bg-blue-500 hover:scale-105 transition-all shadow-xl"
-          >
-            {m.label}
-          </button>
-        ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {maps.map((m) => (
+            <div
+              key={m.id}
+              onClick={() => chooseMap(m.id)}
+              className="cursor-pointer px-8 py-6 bg-linear-to-br from-blue-700 to-cyan-600 hover:from-cyan-500 hover:to-blue-500 rounded-2xl shadow-2xl hover:scale-105 transition-transform transform"
+            >
+              <h2 className="text-2xl font-bold mb-2">{m.label}</h2>
+              <p className="text-gray-200">Explore this map and test your skills!</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -7,57 +7,15 @@ interface ErrorOverlayProps {
 
 const ErrorOverlay: React.FC<ErrorOverlayProps> = ({ message, onBack }) => {
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        background: "rgba(0,0,0,0.85)",
-        backdropFilter: "blur(4px)",
-        color: "#fff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 9999,
-        textAlign: "center",
-        padding: 20,
-        animation: "fadeIn 0.4s ease-out",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 400,
-          padding: "30px 20px",
-          borderRadius: 12,
-          background: "rgba(255, 255, 255, 0.05)",
-          border: "1px solid rgba(255,255,255,0.2)",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
-          transform: "scale(0.8)",
-          animation: "popIn 0.4s forwards",
-        }}
-      >
-        <h2 style={{ marginBottom: 15 }}>🚨 Failed to load the map</h2>
-        <p style={{ marginBottom: 25, lineHeight: 1.5 }}>{message}</p>
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 text-center animate-fadeIn">
+      <div className="max-w-md p-8 rounded-xl bg-black/30 border border-white/20 shadow-2xl transform scale-90 animate-popIn">
+        <h2 className="text-3xl font-extrabold mb-4 text-white drop-shadow-[0_0_12px_rgba(255,255,0,0.8)]">
+          🚨 Failed to load the map
+        </h2>
+        <p className="text-lg mb-6 text-gray-200 leading-relaxed">{message}</p>
         <button
           onClick={onBack}
-          style={{
-            padding: "12px 28px",
-            fontSize: 16,
-            fontWeight: 600,
-            color: "#333",
-            background: "linear-gradient(90deg, #ffd966, #ffcc00)",
-            border: "none",
-            borderRadius: 8,
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
-          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          className="px-10 py-4 bg-linear-to-r from-yellow-400 to-yellow-300 rounded-full text-xl font-bold text-black shadow-lg hover:scale-105 transition-transform"
         >
           Back to Map Selection
         </button>
@@ -69,10 +27,13 @@ const ErrorOverlay: React.FC<ErrorOverlayProps> = ({ message, onBack }) => {
             from { opacity: 0; }
             to { opacity: 1; }
           }
+          .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+
           @keyframes popIn {
-            from { transform: scale(0.8); opacity: 0; }
+            from { transform: scale(0.9); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
           }
+          .animate-popIn { animation: popIn 0.4s forwards; }
         `}
       </style>
     </div>
