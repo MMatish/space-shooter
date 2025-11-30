@@ -9,7 +9,7 @@ import { createGridFromTilemap } from "../systems/gridUtils";
 import { shoot } from "../systems/shooting";
 import { setupCollisions } from "../systems/collisionHandler";
 import { MapManager } from "../systems/mapManager";
-import { useGameStore } from "../../store/gameStore";
+import { useGameStore } from "../../dataStore/gameStore";
 
 export default class MainScene extends Phaser.Scene {
   private player!: Player;
@@ -25,14 +25,22 @@ export default class MainScene extends Phaser.Scene {
   private mapHeight!: number;
   private lastFired = 0;
 
-  constructor() {
+  // map name
+  private mapName: string;
+
+  // error msg
+  private setError: (msg: string) => void;
+
+  constructor(mapName: string, setError: (msg: string) => void) {
     super("MainScene");
+    this.mapName = mapName;
+    this.setError = setError;
   }
 
   preload() {
     // --- MAP ---
-    this.load.image("tiles", "assets/TileSet v1.0.png");
-    this.load.tilemapTiledJSON("map", "assets/map.json");
+    this.load.image("tiles", `assets/maps/${this.mapName}_tileset.png`);
+    this.load.tilemapTiledJSON("map", `assets/maps/${this.mapName}.json`);
 
     // --- ENTITIES ---
     this.load.image("player", "assets/player.png");
@@ -60,8 +68,9 @@ export default class MainScene extends Phaser.Scene {
   }
 
   create() {
-    // --- MAP ---
-    const { map, floors, walls } = createMap(this);
+    try {
+      // --- MAP ---
+    const { map, floors, walls } = createMap(this, this.mapName);
     this.mapWidth = map.widthInPixels;
     this.mapHeight = map.heightInPixels;
 
@@ -117,6 +126,10 @@ export default class MainScene extends Phaser.Scene {
 
     // --- INPUT ---
     this.cursors = this.input.keyboard!.createCursorKeys();
+    } catch (error: any) {
+      console.error(error);
+      this.setError(error.message || "Unknown error occured")
+    }
   }
 
   update(time: number) {

@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import ActorEntity from "./ActorEntity";
-import { useGameStore } from "../../store/gameStore";
+import { useGameStore } from "../../dataStore/gameStore";
 
 export default class Player extends ActorEntity {
   private thrust = 300;    // how much acceleration is applied when moving
