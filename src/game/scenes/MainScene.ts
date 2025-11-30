@@ -34,10 +34,14 @@ export default class MainScene extends Phaser.Scene {
   // error msg
   private setError: (msg: string) => void;
 
-  constructor(mapName: string, setError: (msg: string) => void) {
+  // for loading
+  onLoaded: (() => void) | undefined;
+
+  constructor(mapName: string, setError: (msg: string) => void, onLoaded?: () => void) {
     super("MainScene");
     this.mapName = mapName;
     this.setError = setError;
+    this.onLoaded = onLoaded;
   }
 
   preload() {
@@ -68,6 +72,10 @@ export default class MainScene extends Phaser.Scene {
     // --- SOUNDS ---
     this.load.audio("explosion", "assets/sounds/explosion.mp3");
     this.load.audio("shot", "assets/sounds/shot.mp3");
+
+    this.load.on("complete", () => {
+      if (this.onLoaded) this.onLoaded();
+    });
   }
 
   create() {

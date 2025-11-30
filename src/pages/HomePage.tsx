@@ -13,7 +13,7 @@ const HomePage = () => {
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-md">
-          To move, use <b>arrows up and down</b>, to restart the map - press{" "}
+          To move, use <b>WASD</b> <br /> To restart the map - press <b>Space</b> <br /> To open a menu - press <b>ESC</b>
           <b>space</b>
         </p>
 
