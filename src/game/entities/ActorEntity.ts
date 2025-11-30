@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import Bullet from "./Bullet";
 import Explosion from "./Explosion";
 
@@ -30,7 +31,6 @@ export default class ActorEntity extends Phaser.Physics.Arcade.Sprite {
     stats: ActorStats = {}
   ) {
     const scale = stats.scale ?? 0.6;
-
     super(scene, x, y, texture);
 
     // Pull stats from config
@@ -53,6 +53,12 @@ export default class ActorEntity extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setCollideWorldBounds(true);
     body.setSize(this.width * scale, this.height * scale);
+
+    // --- Movement physics defaults (UPDATED for instant stop capability) ---
+    body.setDamping(false);
+    // Set drag to 0 to ensure the physics engine doesn't introduce friction/sliding
+    body.setDrag(0, 0); 
+    body.setMaxVelocity(300);
 
     // Local bullet pool (player or enemies can use it)
     this.bullets = scene.physics.add.group({

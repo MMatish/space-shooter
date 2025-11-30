@@ -21,6 +21,9 @@ export default class MainScene extends Phaser.Scene {
   private enemiesGroup!: Phaser.Physics.Arcade.Group;
   private mapManager!: MapManager;
 
+  private keys!: Record<'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
+
+
   private mapWidth!: number;
   private mapHeight!: number;
   private lastFired = 0;
@@ -70,66 +73,73 @@ export default class MainScene extends Phaser.Scene {
   create() {
     try {
       // --- MAP ---
-    const { map, floors, walls } = createMap(this, this.mapName);
-    this.mapWidth = map.widthInPixels;
-    this.mapHeight = map.heightInPixels;
+      const { map, floors, walls } = createMap(this, this.mapName);
+      this.mapWidth = map.widthInPixels;
+      this.mapHeight = map.heightInPixels;
 
-    // --- WORLD BOUNDS ---
-    this.physics.world.setBounds(0, 0, this.mapWidth, this.mapHeight);
+      // --- WORLD BOUNDS ---
+      this.physics.world.setBounds(0, 0, this.mapWidth, this.mapHeight);
 
-    // --- BACKGROUND ---
-    addBackground(this, this.mapWidth, this.mapHeight);
+      // --- BACKGROUND ---
+      addBackground(this, this.mapWidth, this.mapHeight);
 
-    // --- PATHFINDER ---
-    const grid = createGridFromTilemap(floors);
-    const pathfinder = new Pathfinder(grid);
+      // --- PATHFINDER ---
+      const grid = createGridFromTilemap(floors);
+      const pathfinder = new Pathfinder(grid);
 
-    // --- MAP MANAGER ---
-    this.mapManager = new MapManager(this, pathfinder);
-    this.mapManager.loadMap(map, "map"); // just pass the map object and its key/name
+      // --- MAP MANAGER ---
+      this.mapManager = new MapManager(this, pathfinder);
+      this.mapManager.loadMap(map, "map"); // just pass the map object and its key/name
 
-    // --- PLAYER ---
-    this.player = new Player(this, this.mapWidth / 2, this.mapHeight / 2);
-    this.playerGroup = this.physics.add.group({ classType: Player });
-    this.playerGroup.add(this.player);
+      // --- PLAYER ---
+      this.player = new Player(this, this.mapWidth / 2, this.mapHeight / 2);
+      this.playerGroup = this.physics.add.group({ classType: Player });
+      this.playerGroup.add(this.player);
 
-    useGameStore.getState().setPlayerHP(this.player.health);
+      useGameStore.getState().setPlayerHP(this.player.health);
 
-    // --- CAMERA ---
-    const camera = this.cameras.main;
-    camera.setBounds(0, 0, this.mapWidth, this.mapHeight);
-    camera.startFollow(this.player, true, 0.08, 0.08);
-    camera.setZoom(2);
+      // --- CAMERA ---
+      const camera = this.cameras.main;
+      camera.setBounds(0, 0, this.mapWidth, this.mapHeight);
+      camera.startFollow(this.player, true, 0.08, 0.08);
+      camera.setZoom(2);
 
-    // --- ANIMATIONS ---
-    registerAnimations(this);
+      // --- ANIMATIONS ---
+      registerAnimations(this);
 
-    // --- BULLET GROUPS ---
-    this.playerBullets = createBulletGroup(this);
-    this.enemyBullets = createBulletGroup(this);
+      // --- BULLET GROUPS ---
+      this.playerBullets = createBulletGroup(this);
+      this.enemyBullets = createBulletGroup(this);
 
-    // --- ENEMIES GROUP ---
-    this.enemiesGroup = this.physics.add.group();
+      // --- ENEMIES GROUP ---
+      this.enemiesGroup = this.physics.add.group();
 
-    // --- FIRST WAVE ---
-    this.enemies = this.mapManager.spawnWave(this.enemiesGroup, walls);
+      // --- FIRST WAVE ---
+      this.enemies = this.mapManager.spawnWave(this.enemiesGroup, walls);
 
-    // --- COLLISIONS ---
-    setupCollisions(
-      this,
-      this.playerGroup,
-      this.playerBullets,
-      this.enemyBullets,
-      this.enemiesGroup,
-      walls
-    );
+      // --- COLLISIONS ---
+      setupCollisions(
+        this,
+        this.playerGroup,
+        this.playerBullets,
+        this.enemyBullets,
+        this.enemiesGroup,
+        walls
+      );
 
-    // --- INPUT ---
-    this.cursors = this.input.keyboard!.createCursorKeys();
+      // --- INPUT ---
+      this.cursors = this.input.keyboard!.createCursorKeys();
     } catch (error: any) {
       console.error(error);
-      this.setError(error.message || "Unknown error occured")
+      this.setError(error.message || "Unknown error occured");
     }
+    // --- WASD keys ---
+    this.keys = this.input.keyboard!.addKeys({
+      w: Phaser.Input.Keyboard.KeyCodes.W,
+      a: Phaser.Input.Keyboard.KeyCodes.A,
+      s: Phaser.Input.Keyboard.KeyCodes.S,
+      d: Phaser.Input.Keyboard.KeyCodes.D,
+    }) as Record<"w" | "a" | "s" | "d", Phaser.Input.Keyboard.Key>;
   }
 
   update(time: number) {
@@ -142,7 +152,7 @@ export default class MainScene extends Phaser.Scene {
     if (!this.player) return;
 
     // --- PLAYER UPDATE ---
-    this.player.update(this.cursors, this.input.activePointer);
+    this.player.update(this.cursors, this.keys, this.input.activePointer);
 
     // --- PLAYER SHOOTING ---
     if (
